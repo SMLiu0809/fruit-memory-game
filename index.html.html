@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台灣優質水果記憶大挑戰 - 高師大 劉世閔教授 設計</title>
+  <style>
+    :root {
+      --bg-color: #ECFDF5;
+      --panel-bg: rgba(255, 255, 255, 0.95);
+      --text-color: #064E3B;
+      --border-color: #A7F3D0;
+      --primary: #10B981;
+      --primary-dark: #059669;
+      --accent: #F59E0B;
+    }
+    
+    body {
+      margin: 0; padding: 0; font-family: "Comic Sans MS", "微軟正黑體", sans-serif;
+      background-color: var(--bg-color); color: var(--text-color);
+      display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+      user-select: none; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+
+    header {
+      width: 100%; background: var(--panel-bg); padding: 15px 0;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+      display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;
+      position: sticky; top: 0; z-index: 50; border-bottom: 3px solid var(--border-color);
+    }
+    .hud-item { font-size: 20px; font-weight: 900; background: #D1FAE5; padding: 10px 20px; border-radius: 25px; color: var(--primary-dark); border: 2px solid #6EE7B7; }
+    
+    #game-container { 
+      width: 100%; max-width: 1100px; padding: 25px 20px 60px 20px; 
+      box-sizing: border-box; flex: 1; display: flex; flex-direction: column; align-items: center; 
+    }
+
+    /* 👑 修正卡頓 1：移除吃 GPU 的 backdrop-filter，改用高對比純色透明遮罩 */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(6, 78, 59, 0.95); z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.2s ease;
+    }
+    
+    /* 👑 修正卡頓 2：加入 will-change 啟動硬體加速 */
+    .modal-box {
+      background: white; padding: 35px 40px; border-radius: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+      width: 90%; max-width: 650px; text-align: center; border: 5px solid var(--border-color);
+      max-height: 90vh; overflow-y: auto; will-change: transform, opacity; transform: translateZ(0);
+    }
+    
+    .modal-title { font-size: 36px; font-weight: 900; color: var(--primary-dark); margin-bottom: 12px; }
+    .author-badge { display: inline-block; background: #FEF3C7; color: #D97706; padding: 8px 20px; border-radius: 20px; font-size: 18px; font-weight: 900; margin-bottom: 25px; border: 2px solid #FDE68A; }
+    
+    .info-card {
+      background: #F8FAFC; border: 2px dashed #94A3B8; border-radius: 15px;
+      padding: 18px; margin-bottom: 20px; text-align: left;
+    }
+    .info-title {
+      color: #0369A1; font-weight: 900; font-size: 20px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #E0F2FE; padding-bottom: 8px;
+    }
+    .info-text { font-size: 16px; color: #334155; line-height: 1.6; font-weight: bold; }
+
+    .setting-label { font-size: 18px; color: #059669; font-weight: 900; text-align: left; margin-bottom: 8px; margin-top: 15px; }
+    
+    select {
+      width: 100%; padding: 16px; font-size: 20px; border-radius: 15px; border: 3px solid var(--primary);
+      outline: none; font-weight: 900; cursor: pointer; color: var(--text-color);
+      background: #F0FDF4; appearance: none; text-align: center;
+    }
+    select:disabled { background: #E2E8F0; color: #94A3B8; border-color: #CBD5E1; cursor: not-allowed; }
+    
+    .magic-btn {
+      background: var(--primary); color: white; border: none; padding: 18px 30px; margin-top: 20px;
+      border-radius: 30px; cursor: pointer; font-size: 24px; font-weight: 900;
+      transition: 0.2s; width: 100%; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+    .magic-btn:hover { background: var(--primary-dark); transform: translateY(-3px); }
+    .btn-quit { background: #EF4444; border-color: #DC2626; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3); font-size: 16px; padding: 10px 20px; width: auto; margin-top: 0; }
+    .btn-quit:hover { background: #DC2626; }
+
+    #countdown-display { 
+      font-size: 150px; font-weight: 900; color: #EF4444; position: fixed; 
+      top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 80; 
+      opacity: 0; pointer-events: none; 
+      text-shadow: 0 10px 30px rgba(255,255,255,0.9), 0 0 20px #FFF; transition: opacity 0.3s ease;
+    }
+
+    #card-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+      gap: 15px; width: 100%; perspective: 1000px;
+    }
+    
+    .card {
+      background: transparent; aspect-ratio: 1 / 1.1; cursor: pointer;
+      position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+      will-change: transform;
+    }
+    .card.flipped { transform: rotateY(180deg) translateZ(0); }
+    
+    .card-face {
+      position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border-radius: 18px; box-shadow: 0 6px 15px rgba(0,0,0,0.12); border: 4px solid #FFF; box-sizing: border-box; transform: translateZ(0);
+    }
+    .card-front { background: linear-gradient(135deg, #34D399, #10B981); color: white; font-size: 50px; font-weight: bold; }
+    .card-back { background: white; transform: rotateY(180deg) translateZ(0); }
+    
+    .card-emoji { font-size: clamp(55px, 8vw, 75px); line-height: 1.1; margin-bottom: 5px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+    .card-text { font-size: clamp(18px, 3vw, 22px); font-weight: 900; text-align: center; line-height: 1.2; padding: 0 4px; color: var(--text-color); letter-spacing: 1px; }
+
+    @media (max-width: 600px) {
+      #card-grid { grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 10px; }
+      header { flex-wrap: wrap; gap: 8px; padding: 10px; }
+      .hud-item { font-size: 16px; padding: 8px 12px; border-radius: 20px; }
+      .card-emoji { font-size: 50px; }
+      .card-text { font-size: 15px; }
+      .modal-box { padding: 25px 15px; }
+      .magic-btn { font-size: 20px; padding: 15px 20px; }
+      select { padding: 12px; font-size: 18px; }
+      .info-title { font-size: 18px; }
+      .info-text { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 狀態資訊列 -->
+  <header id="hud" style="display:none;">
+    <div class="hud-item" id="hud-level">關卡: 1/10</div>
+    <div class="hud-item" id="hud-flips">翻牌: 0次</div>
+    <div class="hud-item" id="hud-time">耗時: 0秒</div>
+    <button class="magic-btn btn-quit" onclick="location.reload()">重新選擇</button>
+  </header>
+
+  <div id="countdown-display">3</div>
+
+  <div id="game-container">
+    <div id="card-grid"></div>
+  </div>
+
+  <!-- 首頁與設定 -->
+  <div class="modal-overlay" id="start-modal">
+    <div class="modal-box">
+      <div class="modal-title">🍉 台灣果農記憶大挑戰</div>
+      <div class="author-badge">👨‍🏫 高師大 劉世閔教授 設計</div>
+      
+      <div class="info-card">
+        <div class="info-title">📖 遊戲簡介</div>
+        <div class="info-text">
+          本遊戲專為跨世代設計，從兒童到高齡長輩皆能輕鬆同樂！結合台灣在地 20 種優質農產品，並導入獨創的<b>「分齡預先記憶」</b>與<b>「動態難度加權」</b> AI 演算法。讓玩家在翻牌闖關的樂趣中訓練腦力，同時認識本土水果的健康價值。
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-title">👨‍🏫 關於設計者</div>
+        <div class="info-text">
+          由 <b>國立高雄師範大學 劉世閔 教授</b> 精心策劃開發。將嚴謹的質性研究精神與教育心理學，完美融合最新的人工智慧生成技術。致力於打造「青銀共賞、全齡護眼」的高品質數位教育科技應用。
+        </div>
+      </div>
+      
+      <div class="setting-label">👤 選擇年齡組別：</div>
+      <select id="age-group-select">
+        <option value="0">兒童組 (6-12歲)</option>
+        <option value="1">青少年組 (13-18歲)</option>
+        <option value="2">成年組 (18-40歲)</option>
+        <option value="3" selected>壯年組 (41-60歲)</option>
+        <option value="4">高齡組 (61-70歲)</option>
+        <option value="5">71-75歲組</option>
+        <option value="6">76-80歲組</option>
+        <option value="7">81-85歲組</option>
+        <option value="8">86-90歲組</option>
+        <option value="9">91歲以上組</option>
+      </select>
+
+      <div class="setting-label">🗺️ 選擇起始關卡 (已自動存檔)：</div>
+      <select id="level-select"></select>
+      
+      <button class="magic-btn" onclick="startGame()">🚀 點此開始挑戰</button>
+    </div>
+  </div>
+
+  <!-- 過關過渡彈窗 -->
+  <div class="modal-overlay" id="level-modal" style="display:none;">
+    <div class="modal-box" style="max-width: 400px;">
+      <div class="modal-title" style="font-size: 45px; margin-bottom: 25px;">🎉 過關！</div>
+      <button class="magic-btn" id="next-level-btn" onclick="nextLevel()">進入下一關 ➔</button>
+    </div>
+  </div>
+
+  <!-- 終局結算彈窗 -->
+  <div class="modal-overlay" id="result-modal" style="display:none;">
+    <div class="modal-box" style="max-width: 650px;">
+      <div class="modal-title" style="font-size: 40px;">🏆 挑戰完成！</div>
+      <div class="author-badge" id="final-stats" style="background:#E0F2FE; color:#0369A1; border-color:#BAE6FD; font-size: 18px; padding: 10px 25px;">
+        計算中...
+      </div>
+      <div id="certificate-title" style="font-size: 30px; font-weight: 900; color: #EF4444; margin: 20px 0;">
+        獎項載入中...
+      </div>
+      <div id="certificate-msg" style="font-size: 18px; color: #1E293B; font-weight: bold; line-height: 1.6; margin-bottom: 30px; padding: 25px; background: #F8FAFC; border-radius: 15px; border: 3px dashed #94A3B8; text-align: left;">
+        評語載入中...
+      </div>
+      <button class="magic-btn" onclick="location.reload()">🔄 回首頁重新挑戰</button>
+    </div>
+  </div>
+
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      if (type === 'flip') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08); osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+      } else if (type === 'match') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'win') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.setValueAtTime(500, audioCtx.currentTime + 0.1); osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5); osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+      }
+    }
+
+    const FRUITS = [
+      { emoji: "🍅", name: "美濃橙蜜番茄" }, { emoji: "🍐", name: "燕巢芭樂" }, { emoji: "🍌", name: "旗山香蕉" }, { emoji: "🍍", name: "關廟金鑽鳳梨" },
+      { emoji: "🍉", name: "花蓮大西瓜" }, { emoji: "🥭", name: "玉井愛文芒果" }, { emoji: "🍇", name: "彰化巨峰葡萄" }, { emoji: "🍎", name: "梨山蜜蘋果" },
+      { emoji: "🍑", name: "拉拉山水蜜桃" }, { emoji: "🍓", name: "大湖草莓" }, { emoji: "🍈", name: "七股洋香瓜" }, { emoji: "🍒", name: "台灣黃金櫻桃" },
+      { emoji: "🥝", name: "尖石奇異果" }, { emoji: "🥑", name: "大內酪梨" }, { emoji: "🍋", name: "九如檸檬" }, { emoji: "🍊", name: "東勢茂谷柑" },
+      { emoji: "🍏", name: "太麻里釋迦" }, { emoji: "🫐", name: "阿里山藍莓" }, { emoji: "🥥", name: "屏東椰子" }, { emoji: "🫒", name: "寶山橄欖" }
+    ];
+
+    const AGE_CONFIGS = [
+      { times: [1, 2, 3] }, { times: [2, 4, 6] }, { times: [3, 5, 8] }, { times: [3, 5, 8] }, { times: [6, 8, 11] },
+      { times: [9, 11, 14] }, { times: [12, 14, 17] }, { times: [15, 17, 20] }, { times: [18, 20, 23] }, { times: [21, 23, 26] }
+    ];
+    const LEVELS = [ 2, 3, 4, 6, 8, 10, 12, 15, 18, 20 ];
+
+    const CERTIFICATES = [
+      { title: "【神人級！寶島果農金頭腦】", msg: "您的記憶力簡直是金氏世界紀錄等級！就像美濃優質的「橙蜜香番茄」，富含維生素C與茄紅素，讓您的大腦常保年輕靈活，太神啦！" },
+      { title: "【傳說級！人體鮮果雷達】", msg: "太驚人了！任何水果都逃不過您的法眼。推薦多吃「燕巢芭樂」，維生素C是蘋果的數倍，強大抗氧化力讓您的記憶雷達永遠滿格！" },
+      { title: "【宗師級！果園記憶霸主】", msg: "實力堅強，稱霸果園！來顆「關廟金鑽鳳梨」，鳳梨酵素不僅幫助消化，更能促進血液循環，讓您的思緒如王者般清晰！" },
+      { title: "【星鑽獎！百發百中挑果神手】", msg: "反應迅速，眼明手快！多品嚐優質的「旗山香蕉」，豐富的鉀離子能迅速補充大腦與肌肉的能量，繼續保持神手手感！" },
+      { title: "【金牌獎！產銷班記憶扛霸子】", msg: "過關斬將，您絕對是產銷班的驕傲！推薦吃點「寶山橄欖」，橄欖多酚是非常優質的保健元素，助您減少疲勞、過關如喝水！" },
+      { title: "【銀牌獎！閃電鮮果採收員】", msg: "表現很棒！試試「玉井愛文芒果」，富含維生素A，保護靈魂之窗，讓您下次看牌、採收更精準閃電！" },
+      { title: "【銅牌獎！果市超級潛力股】", msg: "穩扎穩打，後勢看漲！多吃「大內酪梨」，優質的油脂是維持大腦神經運作不可或缺的超級食物，讓您潛力大爆發！" },
+      { title: "【熱血獎！努力尋寶的水果探險家】", msg: "漸入佳境，精神可嘉！推薦「東勢茂谷柑」，豐富的膳食纖維與維他命C，增強抵抗力，讓您探險的腦力自然跟著提升！" },
+      { title: "【吃貨獎！只顧流口水的水果試吃員】", msg: "是不是顧著看水果流口水忘記牌在哪啦？多吃「大湖草莓」，滿滿的花青素能幫助大腦抗老，下次成績一定突飛猛進！" },
+      { title: "【樹懶獎！剛睡醒的果樹小精靈】", msg: "哎呀，大腦還在暖機嗎？每天吃一份台灣優質在地水果，均衡營養讓大腦天天充滿活力，伸個懶腰準備好再次挑戰吧！" }
+    ];
+
+    let maxUnlockedLevel = parseInt(localStorage.getItem('fruit_memory_max_level')) || 1;
+    let startLevel = 1; 
+    let currentLevel = 1;
+    let totalFlips = 0;
+    let totalTime = 0; 
+    let userAgeGroupIdx = 0;
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let isLocked = false; 
+    let levelTimer = null;
+    let cdTimer = null;
+
+    window.onload = () => {
+      const levelSelect = document.getElementById('level-select');
+      levelSelect.innerHTML = '';
+      for (let i = 1; i <= 10; i++) {
+        let opt = document.createElement('option');
+        opt.value = i;
+        if (i <= maxUnlockedLevel) {
+          opt.innerText = `第 ${i} 關 ${i <= 4 ? '(前段)' : i <= 7 ? '(中段)' : '(後段)'}`;
+        } else {
+          opt.innerText = `第 ${i} 關 (未解鎖 🔒)`;
+          opt.disabled = true;
+        }
+        if (i === maxUnlockedLevel) opt.selected = true;
+        levelSelect.appendChild(opt);
+      }
+      document.getElementById('start-modal').style.display = 'flex';
+    };
+
+    function startGame() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      userAgeGroupIdx = parseInt(document.getElementById('age-group-select').value);
+      currentLevel = parseInt(document.getElementById('level-select').value);
+      startLevel = currentLevel; 
+      
+      totalFlips = 0; totalTime = 0;
+      document.getElementById('start-modal').style.display = 'none';
+      document.getElementById('hud').style.display = 'flex';
+      playSound('pop'); initLevel();
+    }
+
+    function initLevel() {
+      isLocked = true; flippedCards = []; matchedPairs = 0;
+      clearInterval(levelTimer); clearInterval(cdTimer);
+
+      const pairsNeeded = LEVELS[currentLevel - 1];
+      let stageName = currentLevel <= 4 ? "前段" : currentLevel <= 7 ? "中段" : "後段";
+      let stageIdx = currentLevel <= 4 ? 0 : currentLevel <= 7 ? 1 : 2;
+      let preMemoTime = AGE_CONFIGS[userAgeGroupIdx].times[stageIdx];
+
+      document.getElementById('hud-level').innerText = `關卡: ${currentLevel}/10 (${stageName})`;
+      document.getElementById('hud-time').innerText = `耗時: ${totalTime}秒`;
+      document.getElementById('hud-flips').innerText = `翻牌: ${totalFlips}次`;
+      
+      let selectedFruits = FRUITS.slice(0, pairsNeeded);
+      let deck = [...selectedFruits, ...selectedFruits];
+      deck.sort(() => 0.5 - Math.random()); 
+
+      const grid = document.getElementById('card-grid');
+      grid.innerHTML = '';
+      deck.forEach((fruit) => {
+        const card = document.createElement('div');
+        card.className = 'card flipped'; 
+        card.dataset.name = fruit.name;
+        card.innerHTML = `
+          <div class="card-face card-front">❓</div>
+          <div class="card-face card-back">
+            <div class="card-emoji">${fruit.emoji}</div>
+            <div class="card-text">${fruit.name}</div>
+          </div>
+        `;
+        card.addEventListener('click', () => flipCard(card));
+        grid.appendChild(card);
+      });
+
+      const cdDisplay = document.getElementById('countdown-display');
+      cdDisplay.style.opacity = 1; cdDisplay.innerText = preMemoTime;
+      let timeLeft = preMemoTime;
+
+      cdTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft > 0) { cdDisplay.innerText = timeLeft; playSound('pop'); } 
+        else {
+          clearInterval(cdTimer); cdDisplay.style.opacity = 0;
+          document.querySelectorAll('.card').forEach(c => c.classList.remove('flipped'));
+          setTimeout(() => { isLocked = false; startPlayTimer(); }, 450);
+        }
+      }, 1000);
+    }
+
+    function startPlayTimer() {
+      levelTimer = setInterval(() => { totalTime++; document.getElementById('hud-time').innerText = `耗時: ${totalTime}秒`; }, 1000);
+    }
+
+    function flipCard(card) {
+      if (isLocked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+      playSound('flip'); card.classList.add('flipped'); flippedCards.push(card); totalFlips++;
+      document.getElementById('hud-flips').innerText = `翻牌: ${totalFlips}次`;
+      if (flippedCards.length === 2) { isLocked = true; checkMatch(); }
+    }
+
+    function checkMatch() {
+      const [c1, c2] = flippedCards;
+      if (c1.dataset.name === c2.dataset.name) {
+        playSound('match'); c1.classList.add('matched'); c2.classList.add('matched');
+        flippedCards = []; matchedPairs++;
+        if (matchedPairs === LEVELS[currentLevel - 1]) {
+          clearInterval(levelTimer); isLocked = true; setTimeout(levelComplete, 600);
+        } else { isLocked = false; }
+      } else {
+        setTimeout(() => { c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; isLocked = false; }, 800);
+      }
+    }
+
+    function levelComplete() {
+      playSound('win');
+      let nextLvl = currentLevel + 1;
+      if (nextLvl <= 10 && nextLvl > maxUnlockedLevel) {
+          maxUnlockedLevel = nextLvl;
+          localStorage.setItem('fruit_memory_max_level', maxUnlockedLevel);
+      }
+      if (currentLevel < 10) { document.getElementById('level-modal').style.display = 'flex'; } 
+      else { showFinalResult(); }
+    }
+
+    // 👑 修正卡頓 3：非同步繪製下一關，避免 UI 阻塞
+    function nextLevel() {
+      document.getElementById('level-modal').style.display = 'none';
+      currentLevel++;
+      setTimeout(() => {
+          initLevel();
+      }, 50); // 給予瀏覽器 50ms 喘息空間，完美解決切換關卡時的卡頓！
+    }
+
+    function showFinalResult() {
+      document.getElementById('hud').style.display = 'none';
+      document.getElementById('game-container').style.display = 'none';
+      
+      let targetBase = 0;
+      for (let i = startLevel - 1; i < 10; i++) { targetBase += LEVELS[i] * 12; }
+      
+      const penaltyScore = totalTime + (totalFlips * 1.5);
+      const ratio = penaltyScore / targetBase;
+      let gradeIndex = 9; 
+      
+      if (ratio < 0.50) gradeIndex = 0;
+      else if (ratio < 0.60) gradeIndex = 1;
+      else if (ratio < 0.70) gradeIndex = 2;
+      else if (ratio < 0.85) gradeIndex = 3;
+      else if (ratio < 1.00) gradeIndex = 4;
+      else if (ratio < 1.25) gradeIndex = 5;
+      else if (ratio < 1.50) gradeIndex = 6;
+      else if (ratio < 1.75) gradeIndex = 7;
+      else if (ratio < 2.00) gradeIndex = 8;
+      
+      const cert = CERTIFICATES[gradeIndex];
+      
+      document.getElementById('final-stats').innerText = `(起點:第${startLevel}關) 總耗時: ${totalTime}秒 | 總翻牌: ${totalFlips}次`;
+      document.getElementById('certificate-title').innerText = cert.title;
+      document.getElementById('certificate-msg').innerText = cert.msg;
+      
+      document.getElementById('result-modal').style.display = 'flex';
+    }
+
+  </script>
+</body>
+</html>
