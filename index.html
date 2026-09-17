@@ -2,12 +2,12 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <!-- 👑 升級 1：鎖定視口，防止手機雙擊放大，營造原生 App 級滑順手感 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>銀潭麗娟寶島水果園 - 劉世閔教授 設計</title>
   <style>
     :root { --bg-color: #ECFDF5; --panel-bg: rgba(255, 255, 255, 0.95); --text-color: #064E3B; --border-color: #A7F3D0; --primary: #10B981; --primary-dark: #059669; --accent: #F59E0B; }
-    body { margin: 0; padding: 0; font-family: "Comic Sans MS", "微軟正黑體", "Segoe UI", sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; align-items: center; min-height: 100vh; user-select: none; -webkit-touch-callout: none; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    /* 👑 加入跨國頂級字體支援，確保韓文顯示完美 */
+    body { margin: 0; padding: 0; font-family: "Comic Sans MS", "微軟正黑體", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; align-items: center; min-height: 100vh; user-select: none; -webkit-touch-callout: none; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
     header { width: 100%; background: var(--panel-bg); padding: 15px 0; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15); display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; position: sticky; top: 0; z-index: 50; border-bottom: 3px solid var(--border-color); }
     .hud-item { font-size: 18px; font-weight: 900; background: #D1FAE5; padding: 8px 16px; border-radius: 25px; color: var(--primary-dark); border: 2px solid #6EE7B7; }
     .hud-points { background: #FEF3C7; color: #D97706; border-color: #FDE68A; } 
@@ -87,6 +87,8 @@
       </div>
 
       <div class="modal-title" id="ui-main-title"></div>
+      
+      <!-- 👑 設計者徽章 (含彩蛋) -->
       <div class="author-badge" id="ui-designer" onclick="secretPreviewTrigger()"></div>
       
       <div class="rank-board">
@@ -157,7 +159,7 @@
   </div>
 
   <script>
-    'use strict'; // 👑 升級 3：強制啟用嚴格模式，根絕隱藏 Bug
+    'use strict'; 
 
     let audioCtx;
     function initAudio() {
@@ -171,7 +173,7 @@
 
     function playSound(type) {
       if (!audioCtx) initAudio();
-      if (audioCtx.state === 'suspended') return; // 防呆設計
+      if (audioCtx.state === 'suspended') return; 
       
       const osc = audioCtx.createOscillator(); 
       const gain = audioCtx.createGain();
@@ -227,7 +229,7 @@
         certs: [
           { t: "【神人級！寶島果農金頭腦】", m: "您的記憶力簡直是金氏世界紀錄等級！就像美濃優質的「橙蜜香番茄」，富含維生素C與茄紅素，讓您的大腦常保年輕靈活，太神啦！" },
           { t: "【傳說級！人體鮮果雷達】", m: "太驚人了！任何水果都逃不過您的法眼。推薦多吃「燕巢芭樂」，維生素C是蘋果的數倍，強大抗氧化力讓您的記憶雷達永遠滿格！" },
-          { t: "【宗師級！果園記憶霸霸主】", m: "實力堅強，稱霸果園！來顆「關廟金鑽鳳梨」，鳳梨酵素不僅幫助消化，更能促進血液循環，讓您的思緒如王者般清晰！" },
+          { t: "【宗師級！果園記憶霸主】", m: "實力堅強，稱霸果園！來顆「關廟金鑽鳳梨」，鳳梨酵素不僅幫助消化，更能促進血液循環，讓您的思緒如王者般清晰！" },
           { t: "【星鑽獎！百發百中挑果神手】", m: "反應迅速，眼明手快！多品嚐優質的「旗山香蕉」，豐富的鉀離子能迅速補充大腦與肌肉的能量，繼續保持神手手感！" },
           { t: "【金牌獎！產銷班記憶扛霸子】", m: "過關斬將，您絕對是產銷班的驕傲！推薦吃點「寶山橄欖」，橄欖多酚是非常優質的保健元素，助您減少疲勞、過關如喝水！" },
           { t: "【銀牌獎！閃電鮮果採收員】", m: "表現很棒！試試「玉井愛文芒果」，富含維生素A，保護靈魂之窗，讓您下次看牌、採收更精準閃電！" },
@@ -325,7 +327,7 @@
     function renderUI() {
       const D = I18N[currentLang];
       document.getElementById('ui-main-title').innerText = D.main_title;
-      document.getElementById('secret-badge').innerText = D.designer;
+      document.getElementById('ui-designer').innerText = D.designer;
       document.getElementById('player-total-points').innerText = D.pts_label + userTotalPoints;
       document.getElementById('player-title').innerText = D.ranks[getRankIndex(userTotalPoints)];
       document.getElementById('ui-pts-desc').innerText = D.pts_desc;
@@ -371,7 +373,7 @@
     function secretPreviewTrigger() {
       initAudio();
       secretClicks++; playSound('pop'); 
-      const badge = document.getElementById('secret-badge');
+      const badge = document.getElementById('ui-designer');
       badge.classList.add('clicked');
       setTimeout(() => { badge.classList.remove('clicked'); }, 150);
       clearTimeout(secretTimer);
@@ -381,12 +383,14 @@
 
     function renderVisitorCounter() {
       let baseCount = parseInt(localStorage.getItem('fruit_memory_visitor_count')) || 1688;
-      // 👑 升級 3：嚴格防呆，確保只在空節點時才增加虛擬流量，防止切換語言時暴增
       const grid = document.getElementById('visitor-counter-grid');
+      
+      // 確保即使切換語言也不會異常暴增
       if(grid.childElementCount === 0){
          baseCount += Math.floor(Math.random() * 3) + 1; 
          localStorage.setItem('fruit_memory_visitor_count', baseCount);
       }
+      
       const D = I18N[currentLang];
       let numStr = baseCount.toString().padStart(8, '0');
       grid.innerHTML = '';
@@ -456,7 +460,7 @@
       let selectedFruits = FRUITS.slice(0, pairsNeeded);
       let deck = [...selectedFruits, ...selectedFruits];
       
-      // 👑 升級 2：Fisher-Yates 發牌官級絕對隨機洗牌演算法
+      // Fisher-Yates 嚴格隨機發牌演算法
       for (let i = deck.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -467,7 +471,7 @@
       deck.forEach((fruit) => {
         const card = document.createElement('div');
         card.className = 'card flipped'; 
-        card.dataset.name = fruit[currentLang]; // 依賴當前語言作為配對依據，嚴格且安全
+        card.dataset.name = fruit[currentLang]; 
         card.innerHTML = `<div class="card-face card-front">❓</div><div class="card-face card-back"><div class="card-emoji">${fruit.e}</div><div class="card-text">${fruit[currentLang]}</div></div>`;
         card.addEventListener('click', () => flipCard(card));
         grid.appendChild(card);
@@ -496,6 +500,8 @@
       if (isLocked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
       playSound('flip'); card.classList.add('flipped'); flippedCards.push(card); totalFlips++;
       updateHUD();
+      
+      // 確保只允許兩張牌同時處於翻開狀態，消滅「幽靈快點」的可能
       if (flippedCards.length === 2) { isLocked = true; checkMatch(); }
     }
 
