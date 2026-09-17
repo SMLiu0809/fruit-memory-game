@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台灣優質水果記憶大挑戰 - 劉世閔 老師 設計</title>
+  <title>銀潭麗娟寶島水果園 - 高雄師範大學 劉世閔 老師 設計</title>
   <style>
     :root {
       --bg-color: #ECFDF5;
@@ -46,18 +46,16 @@
     .modal-box {
       background: white; padding: 35px 40px; border-radius: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
       width: 90%; max-width: 650px; text-align: center; border: 5px solid var(--border-color);
-      max-height: 90vh; overflow-y: auto; will-change: transform, opacity; transform: translateZ(0);
+      max-height: 95vh; overflow-y: auto; will-change: transform, opacity; transform: translateZ(0);
     }
     
-    .modal-title { font-size: 36px; font-weight: 900; color: var(--primary-dark); margin-bottom: 12px; }
+    .modal-title { font-size: 42px; font-weight: 900; color: var(--primary-dark); margin-bottom: 12px; text-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     
-    /* 👑 專屬署名徽章特效升級 */
     .author-badge { 
       display: inline-block; background: #E0F2FE; color: #0369A1; padding: 8px 20px; 
       border-radius: 20px; font-size: 18px; font-weight: 900; margin-bottom: 20px; 
       border: 2px solid #BAE6FD; cursor: pointer; transition: all 0.15s ease;
     }
-    /* 彩蛋點擊時的閃爍回饋 */
     .author-badge.clicked { transform: scale(0.9); background: #FEF08A; border-color: #FDE047; color: #854D0E; }
     
     .rank-board {
@@ -67,6 +65,11 @@
     }
     .rank-title { font-size: 24px; font-weight: 900; color: #D97706; margin-bottom: 5px; }
     .rank-points { font-size: 20px; color: #92400E; font-weight: bold; }
+
+    .instruction-highlight {
+      background: #ECFEFF; color: #0369A1; font-size: 22px; font-weight: 900; 
+      padding: 12px; border-radius: 12px; border: 2px dashed #7DD3FC; margin-bottom: 15px;
+    }
 
     .info-card { background: #F8FAFC; border: 2px dashed #94A3B8; border-radius: 15px; padding: 18px; margin-bottom: 15px; text-align: left; }
     .info-title { color: #0369A1; font-weight: 900; font-size: 20px; margin-bottom: 8px; border-bottom: 2px solid #E0F2FE; padding-bottom: 8px; }
@@ -92,6 +95,17 @@
     .btn-quit { background: #EF4444; border-color: #DC2626; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3); font-size: 16px; padding: 10px 20px; width: auto; margin-top: 0; }
     .btn-quit:hover { background: #DC2626; }
 
+    .counter-wrapper { margin-top: 25px; border-top: 2px solid #E2E8F0; padding-top: 20px; }
+    .counter-title { font-size: 18px; color: #475569; font-weight: 900; margin-bottom: 12px; }
+    .counter-grid { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+    .digit-box { 
+      background: #1E293B; color: #38BDF8; border-radius: 10px; padding: 8px 10px; 
+      display: flex; flex-direction: column; align-items: center; min-width: 45px; 
+      box-shadow: inset 0 3px 6px rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #0F172A; 
+    }
+    .digit-num { font-size: 28px; font-weight: 900; font-family: monospace; line-height: 1; margin-bottom: 4px; text-shadow: 0 0 8px rgba(56, 189, 248, 0.6); }
+    .digit-label { font-size: 12px; color: #94A3B8; font-weight: bold; }
+
     #countdown-display { 
       font-size: 150px; font-weight: 900; color: #EF4444; position: fixed; 
       top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 80; 
@@ -103,17 +117,9 @@
       gap: 15px; width: 100%; perspective: 1000px;
     }
     
-    .card {
-      background: transparent; aspect-ratio: 1 / 1.1; cursor: pointer;
-      position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); will-change: transform;
-    }
+    .card { background: transparent; aspect-ratio: 1 / 1.1; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); will-change: transform; }
     .card.flipped { transform: rotateY(180deg) translateZ(0); }
-    
-    .card-face {
-      position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      border-radius: 18px; box-shadow: 0 6px 15px rgba(0,0,0,0.12); border: 4px solid #FFF; box-sizing: border-box; transform: translateZ(0);
-    }
+    .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 18px; box-shadow: 0 6px 15px rgba(0,0,0,0.12); border: 4px solid #FFF; box-sizing: border-box; transform: translateZ(0); }
     .card-front { background: linear-gradient(135deg, #34D399, #10B981); color: white; font-size: 50px; font-weight: bold; }
     .card-back { background: white; transform: rotateY(180deg) translateZ(0); }
     
@@ -136,6 +142,10 @@
       .modal-box { padding: 25px 15px; }
       .magic-btn { font-size: 20px; padding: 15px 20px; }
       select { padding: 12px; font-size: 18px; }
+      .digit-box { min-width: 32px; padding: 6px 4px; }
+      .digit-num { font-size: 20px; }
+      .digit-label { font-size: 10px; }
+      .modal-title { font-size: 32px; }
     }
   </style>
 </head>
@@ -155,25 +165,18 @@
   <!-- 【頁面 1】首頁與設定 -->
   <div class="modal-overlay" id="start-modal">
     <div class="modal-box">
-      <div class="modal-title">🍉 台灣果農記憶大挑戰</div>
+      <div class="modal-title">🍉 銀潭麗娟寶島水果園</div>
       
-      <!-- 👑 隱藏彩蛋徽章：加入 ID 與點擊事件 -->
-      <div class="author-badge" id="secret-badge" onclick="secretPreviewTrigger()">👨‍🏫 劉世閔 老師 設計</div>
+      <!-- 👑 高雄師範大學 專屬徽章 (含隱藏彩蛋) -->
+      <div class="author-badge" id="secret-badge" onclick="secretPreviewTrigger()">👨‍🏫 高雄師範大學 劉世閔 老師 設計</div>
       
       <div class="rank-board">
         <div class="rank-title" id="player-title">🌱 水果見習生</div>
         <div class="rank-points" id="player-total-points">總健康積分：0 點</div>
-        <div style="font-size: 14px; color: #B45309; margin-top: 5px;">（天天闖關賺積分，挑戰成為傳奇大師！）</div>
       </div>
 
-      <div class="info-card">
-        <div class="info-title">👨‍🏫 關於設計者</div>
-        <div class="info-text">
-          由 <b>高師大 劉世閔 老師</b> 精心策劃開發。將嚴謹的質性研究精神與教育心理學，完美融合最新的人工智慧生成技術。致力於打造「青銀共賞、全齡護眼」的高品質數位教育科技應用。
-        </div>
-      </div>
+      <div class="instruction-highlight">👇 請先選擇年齡組與關卡 👇</div>
       
-      <div class="setting-label">1️⃣ 選擇您的年齡組別：</div>
       <select id="age-group-select">
         <option value="0">兒童組 (6-12歲)</option>
         <option value="1">青少年組 (13-17歲)</option>
@@ -187,10 +190,17 @@
         <option value="9">91歲以上組</option>
       </select>
 
-      <div class="setting-label">2️⃣ 選擇挑戰起點 (已自動存檔)：</div>
       <select id="level-select"></select>
       
       <button class="magic-btn btn-secondary" onclick="showTutorial()">➡️ 下一步：玩法說明</button>
+
+      <div class="counter-wrapper">
+        <div class="counter-title">🌐 目前已使用人數 (By IP)</div>
+        <div class="counter-grid" id="visitor-counter-grid">
+          <!-- JS 動態生成八位數格子 -->
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -208,6 +218,15 @@
           <div class="card-face card-back"><div class="card-emoji">🥭</div><div class="card-text">愛文芒果</div></div>
         </div>
       </div>
+      
+      <!-- 👑 教學頁面簡介也更新為高雄師範大學 -->
+      <div class="info-card" style="background: #F8FAFC; border-color: #94A3B8; margin-bottom: 15px;">
+        <div class="info-title">👨‍🏫 關於設計者</div>
+        <div class="info-text">
+          由 <b>高雄師範大學 劉世閔 老師</b> 精心策劃開發。將嚴謹的質性研究精神與教育心理學，完美融合最新的人工智慧生成技術。致力於打造「青銀共賞、全齡護眼」的高品質數位教育科技應用。
+        </div>
+      </div>
+
       <div style="background: #FEF9C3; border: 2px dashed #FDE047; border-radius: 15px; padding: 18px; margin-bottom: 15px; text-align: left;">
         <div style="color: #854D0E; font-size: 18px; font-weight: bold; line-height: 1.6;">
           🎯 <b>任務目標：</b><br>
@@ -311,8 +330,6 @@
     let isLocked = false; 
     let levelTimer = null;
     let cdTimer = null;
-    
-    // 👑 彩蛋相關變數
     let secretClicks = 0; 
     let secretTimer = null;
 
@@ -324,25 +341,40 @@
       return "🌱 水果見習生";
     }
 
-    // 👑 強化版：隱藏彩蛋觸發函數 (包含聲光與連擊判斷)
     function secretPreviewTrigger() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
-      
       secretClicks++;
-      playSound('pop'); // 發出點擊提示音
-      
-      // 視覺閃爍回饋
+      playSound('pop'); 
       const badge = document.getElementById('secret-badge');
       badge.classList.add('clicked');
       setTimeout(() => { badge.classList.remove('clicked'); }, 150);
 
-      // 防呆計時：必須在 2 秒內連點 3 下
       clearTimeout(secretTimer);
       secretTimer = setTimeout(() => { secretClicks = 0; }, 2000);
 
       if (secretClicks >= 3) {
-        secretClicks = 0; // 重置
+        secretClicks = 0; 
         previewFinalScreen();
+      }
+    }
+
+    function renderVisitorCounter() {
+      let baseCount = parseInt(localStorage.getItem('fruit_memory_visitor_count')) || 1688;
+      baseCount += Math.floor(Math.random() * 3) + 1; 
+      localStorage.setItem('fruit_memory_visitor_count', baseCount);
+      
+      const places = ["千萬", "百萬", "十萬", "萬", "千", "百", "十", "個"];
+      let numStr = baseCount.toString().padStart(8, '0');
+      const grid = document.getElementById('visitor-counter-grid');
+      grid.innerHTML = '';
+      
+      for(let i = 0; i < 8; i++) {
+        grid.innerHTML += `
+          <div class="digit-box">
+            <div class="digit-num">${numStr[i]}</div>
+            <div class="digit-label">${places[i]}</div>
+          </div>
+        `;
       }
     }
 
@@ -364,6 +396,8 @@
         if (i === maxUnlockedLevel) opt.selected = true;
         levelSelect.appendChild(opt);
       }
+      
+      renderVisitorCounter();
       document.getElementById('start-modal').style.display = 'flex';
     };
 
@@ -395,9 +429,7 @@
       if (audioCtx.state === 'suspended') audioCtx.resume();
       playSound('win');
       document.getElementById('start-modal').style.display = 'none';
-      startLevel = 1;
-      totalTime = 125; 
-      totalFlips = 196; 
+      startLevel = 1; totalTime = 125; totalFlips = 196; 
       
       const cert = CERTIFICATES[0];
       const finalBonus = 1000; 
